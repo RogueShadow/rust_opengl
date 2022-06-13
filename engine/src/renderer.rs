@@ -62,7 +62,7 @@ pub fn new_gsn_renderer() -> GsnRenderer {
     gsn_renderer
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Pixel {
     r: f32,
     g: f32,
@@ -85,6 +85,40 @@ pub struct GsnSprite {
     pub(crate) width: u32,
     pub(crate) height: u32,
     data: Vec<Pixel>,
+}
+
+impl GsnSprite {
+    pub fn set_pixel(&mut self, x: u32, y: u32, pixel: Pixel) -> bool {
+        if x < self.width.try_into().unwrap() && y < self.height.try_into().unwrap() {
+            let index: usize = y as usize * self.width as usize + x as usize;
+            self.data[index] = pixel;
+            true
+        }else{
+            false
+        }
+    }
+    pub fn get_pixel(&self, x: u32, y: u32) -> Pixel {
+        let x = x.clamp(0,self.width);
+        let y = y.clamp(0, self.height);
+        let index: usize = y as usize * self.width as usize + x as usize;
+        self.data[index]
+
+    }
+    pub fn fill_rect(&mut self, x: u32, y: u32, w: u32, h: u32, p: Pixel) {
+        let x = x.clamp(0,self.width);
+        let y = y.clamp(0, self.height);
+        let x2 = (x + w).clamp( 0,self.width);
+        let y2 = (y + h).clamp(0,self.height);
+
+        for dx in x..x2 {
+            for dy in y..y2 {
+                self.set_pixel(dx,dy,p);
+            }
+        }
+    }
+    pub fn clear(&mut self, p: Pixel) {
+        self.fill_rect(0, 0, self.width, self.height, p);
+    }
 }
 
 impl GsnRenderer {
@@ -244,16 +278,6 @@ impl GsnRenderer {
                 gl::FLOAT,
                 self.buffer.data.as_ptr().cast(),
             );
-        }
-    }
-
-    pub fn set_pixel(&mut self, x: u32, y: u32, pixel: Pixel) -> bool {
-        if x < self.buffer.width.try_into().unwrap() && y < self.buffer.height.try_into().unwrap() {
-            let index: usize = y as usize * self.buffer.width as usize + x as usize;
-            self.buffer.data[index] = pixel;
-            true
-        }else{
-            false
         }
     }
 

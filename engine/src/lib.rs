@@ -84,6 +84,7 @@ impl GsnEngine {
         window.set_key_polling(true);
         window.set_mouse_button_polling(true);
 
+
         GsnEngine {
             glfw,
             window,
@@ -121,14 +122,14 @@ impl GsnEngine {
         for (_, event) in glfw::flush_messages(&self.events) {
             match event {
                 glfw::WindowEvent::Key(key, _, action, _) => {
-                    let gsn_key = parse_keys(key);
-                    let gsn_action = parse_action(action);
+                    let gsn_key = map_keys(key);
+                    let gsn_action = map_action(action);
                     self.actions.push(GsnEvent::KeyPress(gsn_key, gsn_action));
                 },
                 glfw::WindowEvent::MouseButton(button,action, modifiers) => {
                     let (mx,my) = self.window.get_cursor_pos();
-                    let gsn_button: GsnButton = parse_mouse_button(button);
-                    let gsn_action = parse_action(action);
+                    let gsn_button: GsnButton = map_mouse_button(button);
+                    let gsn_action = map_action(action);
                     self.actions.push(GsnEvent::MousePress(gsn_button,gsn_action,MousePos{x: mx as u32,y: my as u32}));
                 },
                 _ => {},
@@ -144,14 +145,14 @@ pub fn new_pixel(r: u8, g: u8, b: u8) -> Pixel {
     Pixel::from_rgb(r,g,b)
 }
 
-fn parse_action(glfw_action: glfw::Action) -> GsnAction {
+fn map_action(glfw_action: glfw::Action) -> GsnAction {
     match glfw_action {
         glfw::Action::Press => GsnAction::Press,
         glfw::Action::Release => GsnAction::Release,
         glfw::Action::Repeat => GsnAction::Repeat
     }
 }
-fn parse_mouse_button(glfw_mouse_button: glfw::MouseButton) -> GsnButton {
+fn map_mouse_button(glfw_mouse_button: glfw::MouseButton) -> GsnButton {
     match glfw_mouse_button {
         glfw::MouseButton::Button1 => 1,
         glfw::MouseButton::Button2 => 2,
@@ -163,7 +164,7 @@ fn parse_mouse_button(glfw_mouse_button: glfw::MouseButton) -> GsnButton {
         glfw::MouseButton::Button8 => 8
     }
 }
-fn parse_keys(glfw_key: glfw::Key) -> GsnKey {
+fn map_keys(glfw_key: glfw::Key) -> GsnKey {
     match glfw_key {
         Key::Space => {GsnKey::Space}
         Key::Apostrophe => {GsnKey::Apostrophe}

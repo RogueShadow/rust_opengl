@@ -1,5 +1,6 @@
 pub mod renderer;
 
+use std::collections::HashMap;
 use std::sync::mpsc::Receiver;
 use glfw::{Context, Glfw, Key};
 use crate::renderer::{GsnSprite, Pixel};
@@ -14,7 +15,8 @@ pub struct GsnEngine {
     pub window: glfw::Window,
     pub events: Receiver<(f64,glfw::WindowEvent)>,
     pub renderer: renderer::GsnRenderer,
-    pub actions: Vec<GsnEvent>
+    pub actions: Vec<GsnEvent>,
+    pub keys_held: HashMap<GsnKey,bool>
 }
 
 //noinspection ALL
@@ -27,6 +29,7 @@ pub struct GsnModifiers {
     numlock: bool
 }
 
+#[derive(Debug)]
 pub enum GsnEvent {
     Init,
     Draw,
@@ -34,17 +37,20 @@ pub enum GsnEvent {
     MousePress(GsnButton, GsnAction, MousePos)
 }
 
+#[derive(Debug)]
 pub struct MousePos {
     pub x: u32,
     pub y: u32
 }
 
+#[derive(Debug)]
 pub enum GsnAction {
     Press,
     Release,
     Repeat
 }
 
+#[derive(Debug,Eq,Hash,PartialEq,Copy,Clone)]
 pub enum GsnKey {
     Escape,Space,Up,Down,Left,Right,Apostrophe,Comma,Minus,Period,Slash,
     A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z,
@@ -83,14 +89,15 @@ impl GsnEngine {
         window.make_current();
         window.set_key_polling(true);
         window.set_mouse_button_polling(true);
-
+        let keys_held: HashMap<GsnKey,bool> = HashMap::new();
 
         GsnEngine {
             glfw,
             window,
             events,
             renderer,
-            actions
+            actions,
+            keys_held
         }
     }
 
@@ -124,6 +131,11 @@ impl GsnEngine {
                 glfw::WindowEvent::Key(key, _, action, _) => {
                     let gsn_key = map_keys(key);
                     let gsn_action = map_action(action);
+                    match gsn_action {
+                        GsnAction::Press => {self.keys_held.insert(gsn_key,true);}
+                        GsnAction::Release => {self.keys_held.insert(gsn_key,false);}
+                        _ => {}
+                    }
                     self.actions.push(GsnEvent::KeyPress(gsn_key, gsn_action));
                 },
                 glfw::WindowEvent::MouseButton(button,action, modifiers) => {
@@ -139,10 +151,10 @@ impl GsnEngine {
         self.render();
     }
 
-}
+    pub fn key_held(&self, key: GsnKey) -> bool {
+        *self.keys_held.get(&key).unwrap_or(&false)
+    }
 
-pub fn new_pixel(r: u8, g: u8, b: u8) -> Pixel {
-    Pixel::from_rgb(r,g,b)
 }
 
 fn map_action(glfw_action: glfw::Action) -> GsnAction {

@@ -1,42 +1,65 @@
+use std::collections::HashMap;
 use engine;
 use rand;
 use rand::Rng;
 use engine::{GsnEvent, GsnEngine, GsnKey, GsnAction};
+use engine::renderer::{BLACK, GsnSprite, Pixel, pixel_rgb};
+
+#[derive(Debug,Copy,Clone)]
+pub struct Entity {
+    pub x: f64,
+    pub y: f64,
+    pub speed: f64,
+    pub color: Pixel
+}
+impl Entity {
+    fn left(&mut self) {
+        self.x -= self.speed;
+    }
+    fn right(&mut self) {
+        self.x += self.speed;
+    }
+    fn up(&mut  self) {
+        self.y += self.speed;
+    }
+    fn down(&mut self) {
+        self.y -= self.speed;
+    }
+    fn draw(&mut self,buffer: &mut GsnSprite) {
+        buffer.fill_rect(self.x as u32,self.y as u32,16,16,self.color);
+    }
+}
 
 fn main() {
     // Setting up the window.
-    let mut rng = rand::thread_rng();
-
-    let mut gsn_engine = GsnEngine::new(
+    let mut game = GsnEngine::new(
         "This is a window",
         1024,
         786,
         engine::GsnWindowMode::WINDOWED);
 
 
-    let width = gsn_engine.width();
-    let height = gsn_engine.height();
-    let step: u32 = 8;
+    let mut player = Entity {
+        x: 0.0,
+        y: 0.0,
+        speed: 8.0,
+        color: pixel_rgb(128,128,0)
+    };
 
     // The looping.
     'running: loop {
-        gsn_engine.update();
-        while !gsn_engine.actions.is_empty() {
-            match gsn_engine.actions.pop().unwrap() {
-                GsnEvent::Init => {
-                    println!("Init.");
-                }
+        game.update();
+        while !game.actions.is_empty() {
+            match game.actions.pop().unwrap() {
                 GsnEvent::Draw => {
-                    for x in (0..width).step_by(step as usize) {
-                        for y in (0..height).step_by(step as usize) {
-                            let p = engine::new_pixel(
-                                rng.gen_range(0..255),
-                                rng.gen_range(0..255),
-                                rng.gen_range(0..255)
-                            );
-                            gsn_engine.buffer().fill_rect(x, y, step, step, p);
-                        }
-                    }
+                    if game.key_held(GsnKey::A) {player.left()}
+                    if game.key_held(GsnKey::D){player.right()}
+                    if game.key_held(GsnKey::W) {player.up()}
+                    if game.key_held(GsnKey::S) {player.down()}
+
+                    game.buffer().clear(BLACK);
+
+                    player.draw(game.buffer());
                 }
                 GsnEvent::KeyPress(k, GsnAction::Press) => {
                     match k {
@@ -44,13 +67,7 @@ fn main() {
                         _ => {}
                     }
                 }
-                GsnEvent::MousePress(1,GsnAction::Press,pos) => {
-                    let p = gsn_engine.buffer().get_pixel(pos.x,pos.y);
-                    println!("{:?}",p);
-                }
-                GsnEvent::KeyPress(_, GsnAction::Release) => {}
-                GsnEvent::KeyPress(_, GsnAction::Repeat) => {}
-                GsnEvent::MousePress(_, _, _) => {}
+                _ => {}
             }
         }
     }

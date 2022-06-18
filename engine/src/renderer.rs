@@ -49,7 +49,7 @@ pub fn new_gsn_renderer() -> GsnRenderer {
         ebo: 0,
         shader_program: 0,
         screen_buffer_texture: 0,
-        clear_color: Pixel::from_rgb(0,0,0),
+        clear_color: pixel_rgb(0,0,0),
         width: 0,
         height: 0,
         buffer: GsnSprite {
@@ -70,16 +70,21 @@ pub struct Pixel {
     a: f32,
 }
 
-impl Pixel {
-    pub fn from_rgb(r: u8, g: u8, b: u8) -> Pixel {
-        Pixel {
-            r: (r as f32 / u8::MAX as f32),
-            g: (g as f32 / u8::MAX as f32),
-            b: (b as f32 / u8::MAX as f32),
-            a: 1.0,
-        }
+pub fn pixel_rgb(r: u8, g: u8, b: u8) -> Pixel {
+    Pixel {
+        r: (r as f32 / u8::MAX as f32),
+        g: (g as f32 / u8::MAX as f32),
+        b: (b as f32 / u8::MAX as f32),
+        a: 1.0,
     }
 }
+
+
+pub const WHITE: Pixel = Pixel {r: 1.0, g: 1.0, b: 1.0, a: 1.0};
+pub const BLACK: Pixel = Pixel {r: 0.0, g: 0.0, b: 0.0, a: 1.0};
+pub const RED: Pixel = Pixel {r: 1.0, g: 0.0, b: 0.0, a: 1.0};
+pub const GREEN: Pixel = Pixel {r: 0.0, g: 1.0, b: 0.0, a: 1.0};
+pub const BLUE: Pixel = Pixel {r: 0.0, g: 0.0, b: 1.0, a: 1.0};
 
 pub struct GsnSprite {
     pub(crate) width: u32,
@@ -135,7 +140,7 @@ impl GsnRenderer {
 
         unsafe { self.buffer.data.set_len(self.buffer.data.capacity()); }
         for p in self.buffer.data.iter_mut() {
-            *p = Pixel::from_rgb(0, 0, 0);
+            *p = pixel_rgb(0, 0, 0);
         }
 
 

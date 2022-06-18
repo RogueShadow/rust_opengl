@@ -1,4 +1,4 @@
-/target
-/engine/target/
-/example/target/
-/.idea/
+/target/*
+/engine/target/*
+/example/target/*
+/.idea/*
